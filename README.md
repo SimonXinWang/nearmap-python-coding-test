@@ -7,5 +7,4 @@ Complete the plot-gnss.py python script to visualize the following GNSS data in 
 
 The data.zip file contains the log files, and the resources folder contains PDF files with descriptions of the above mentioned message formats.
 
-Use python 3.6
-Use matplotlib.pyplot for visualisation
+Use python 3.6, and use matplotlib.pyplot for visualisation
