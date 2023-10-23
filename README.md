@@ -10,7 +10,7 @@
     * imu.dat: a binary file that contains the CORRIMUDATAS messages (with short binary HEADER)
 * Use pdf documentation in resources + do your own research online if required
 
-## Problem 1: 
+## Problem 1: Plot of flight route
 
 Create a tool which is plotting the flight route of a plane.
 * Interpret gps.txt file, read GPGGA message
@@ -18,12 +18,12 @@ Create a tool which is plotting the flight route of a plane.
 * Longitude and lattitude shall be displayed in degrees ranging from -180...180 degrees. For example, position of Sydney is 150 Deg E, 31 Deg S. This shall be displayed as 150.00 for longitude and -31.00 for lattitude (be aware that GPGGA is storing the values in a different format!)
 * Set diagram and axis titles
 
-## Problem 2
+## Problem 2: Plot of IMU measurement
 
 Create a tool which is plotting the IMU data from a flight.
 * Interpret IMU.dat, read CORRIMUDATAS (binary short header) message
 * Calculate average sampling rate of the CORRIMUDATAS message in samples per second
-* Plot 20 seconds of pitch, roll and yaw data as soon IMU is turned on (as long IMU is off pitch rates are 0.0)
+* Plot 20 seconds of pitch, roll and yaw data as soon IMU is turned on (as long IMU is off rates will be 0.0)
 * Plot all three rates in same diagram, use legend to indicate which graph corresponds to which measurement
 
 ## Submission instructions
@@ -33,4 +33,4 @@ Create a tool which is plotting the IMU data from a flight.
 
 * DO NOT send pull requests against this repository for two reasons:
   * We don't want executables checked into source control
-  * We don't want other candidates to see your solution.
+  * We don't want other candidates to see your solution
