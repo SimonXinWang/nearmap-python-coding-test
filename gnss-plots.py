@@ -44,8 +44,13 @@ import os
 # Error Codes
 GNSS__ERROR_INVALID_PARAMETER = 2
 
-# Number of CPU cores to reserve for other tasks external to this application.
-RESERVE_CORES = 1
+# GPGGA log data header
+GNSS_GPGGA_LOG_HEADER = "$GPGGA"
+# GPGGA log data format
+GNSS_GPGGA_LOG_FIELD__LATITUDE_IDX           = 2
+GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX = 3
+GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX          = 4
+GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX= 5
 
 # If parsing more than EFFICIENCY_THRESH number of log files, process using multiprocessing.
 # Otherwise if parsing less log files, it is more efficient to parse sequencially.
@@ -93,14 +98,19 @@ def parse(line: str, delims: tuple) -> list:
         else:
             line = line.replace(delim, delims[0])
     ret = line.split(delims[0])
-    for index , elem in ret:
-        # print(elem)
-        # if elem == '$GPGGA'
-            if index == 2 or index == 3 or index == 4 or index == 5:
-                extract.append(elem)
-    # [x.strip() for x in ret]
+    # extract longitude and latitude only if GPGGA log
+    if GNSS_GPGGA_LOG_HEADER in line:
+        for index, elem in enumerate(ret):
+            if index == GNSS_GPGGA_LOG_FIELD__LATITUDE_IDX or \
+                    index == GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX or\
+                    index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX or\
+                    index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX:
+                extract.append(elem)      
+        print("each extracted Long Lati data in GPGGA logs:")
+        print(extract)
+    # [x.strip() for x in ret]  # x.strign remove any trailing white space
     return extract
-    # x.strign remove any trailnig white space
+    
 
 # @brief    Function to calculate CRC8 checksum of given data, least significant bit first,
 #           both in terms of the algorithm and the polynomial to be used,
@@ -142,6 +152,8 @@ def parse_all(log_file=None, delims=None, section_keys=None):
                 if section_num < len(section_keys):
                     if section_keys[section_num] in line:
                         section_num += 1
+            print("extracted list of Long Lati data in GPGGA logs:")
+            print(ret)
     return ret
 
 
