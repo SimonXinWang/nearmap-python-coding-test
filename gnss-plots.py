@@ -33,7 +33,7 @@ import os
 
 # Error Codes
 GNSS__ERROR_INVALID_PARAMETER = 2
-GNSS__TURE = 1
+GNSS__TRUE = 1
 GNSS__FALSE = 0
 
 # GPGGA log data header
@@ -171,11 +171,9 @@ def data_plot(lattitude=None, longitude=None):
     # Debug print
     #
     print("Plotted successfully")
-    print("created my own exercise Git repository for practice python")
     print("---------------------------------------------")
-    return GNSS__TURE
-
-
+    return GNSS__TRUE
+    
 # """
 # test GNSS data extraction function
 # Args:
@@ -209,19 +207,24 @@ def test_parse_all(test_input=None, expected_test_input=None, delims=None):
         print("extracted from test input of Long Lati data in GPGGA logs:")
         print(test_input_list)
     
+    flat_test_input_List = sum(test_input_list, [])    
+
     with open(expected_test_input, 'r') as lf:
         file = lf.readlines()
         for line in file:
             expected_data_list.append(line.strip())
+        print("expected test output list of Long Lati data in GPGGA logs:")
+        print(expected_data_list)
 
+    if expected_data_list == flat_test_input_List:
+        return GNSS__TRUE
         # expected_data_list = list(map(
         #     read_expected_data.strip(), expected_data_list))                
         # for i in read_expected_data:
         #     expected_data_list.append(i.strip())
-        print("expected test output list of Long Lati data in GPGGA logs:")
-        print(expected_data_list)
+    else:
+        return GNSS__FALSE
 
-    return GNSS__TURE
 
 # @brief    Main for gnss-plots (a tool which is plotting the flight route of a plane.) that does:
 #           Execute unit test code for parse_all function
@@ -262,8 +265,8 @@ if __name__ == '__main__':
     test_result = test_parse_all(
         test_data_input, expected_test_input, DEFAULT_DELIMS)
     if(test_result == GNSS__FALSE):
-        log.info("No test data file.")
-        print("ERROR:Could not find test data file for use.")
+        log.info("unit test failed.")
+        print("ERROR:unit test failed.")
         time.sleep(2)
         quit()
     else:
