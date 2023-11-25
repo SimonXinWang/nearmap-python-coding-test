@@ -48,7 +48,8 @@ GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX= 5
 class Const:
     """Constants used as inputs gnss data."""
     # 
-    TEST_DATA_LOCAL_PATH = r"data\.txt"
+    TEST_DATA_INPUT_LOCAL_PATH = r"data\gps_test_input.txt"
+    EXPECTED_TEST_DATA_OUTPUT_PATH = r"data\expected_gps_test_output.txt"
     DATA_LOCAL_PATH = r"data\gps.txt"
 
 
@@ -108,8 +109,17 @@ def parse(line: str, delims: tuple) -> list:
 #     List of lists where each "sub-list" represents a parsed line in the log file.
 # """
 def parse_all(log_file=None, delims=None, section_keys=None):
-
     ret = []
+
+    # try local file availability
+    try:
+        open(log_file, 'r')
+    except:
+        log.info("No data file.")
+        print("ERROR:Could not find data log for use.")
+        time.sleep(2)
+        quit()
+        
     with open(log_file, 'r') as lf:
         file = lf.readlines()
         if section_keys is None:
@@ -174,27 +184,33 @@ def data_plot(Lattitude=None, Longitude=None):
 #     GNSS__FALSE - Failure
 # """
 def test_parse_all(Lattitude=None, Longitude=None):
-    # np.array(ret)
+    ret = []
 
-    # generating dummy Data for plotting
-    t = np.arange(0.0, 2.0, 0.01)
-    s = 1 + np.sin(2 * np.pi * t)
+    # try local file availability
+    try:
+        open(log_file, 'r')
+    except:
+        log.info("No data file.")
+        print("ERROR:Could not find data log for use.")
+        time.sleep(2)
+        quit()
 
-    # plotting
-    fig, ax = plt.subplots()
-    ax.plot(t, s)
-
-    ax.set(xlabel='time (s)', ylabel='voltage (mV)',
-           title='Plot of flight route')
-    ax.grid()
-
-    fig.savefig("flight_route.png")
-    plt.show()
-    #
-    # Debug print
-    #
-    print("Plotted successfully")    
-    print("---------------------------------------------")
+    with open(log_file, 'r') as lf:
+        file = lf.readlines()
+        if section_keys is None:
+            # No separate sections.
+            for line in file:
+                ret.append(parse(line, delims))
+        else:
+            # Parse each section of the log file separately.
+            section_num = 0
+            for line in file:
+                ret.append(parse(line, delims[section_num]))
+                if section_num < len(section_keys):
+                    if section_keys[section_num] in line:
+                        section_num += 1
+            print("extracted list of Long Lati data in GPGGA logs:")
+            print(ret)    
     return GNSS__TURE
 
 # @brief    Main for gnss-plots (a tool which is plotting the flight route of a plane.) that does:
@@ -218,10 +234,6 @@ if __name__ == '__main__':
     log_files = []
     results = []
     data_file = os.path.abspath(Const.DATA_LOCAL_PATH)
-    if not data_file:
-        log.info("No data file.")
-        time.sleep(2)
-        quit()
     # for root, directories, filenames in os.walk(folder):
     #     for filename in filenames:
     #         if filename.endswith(".txt"):
