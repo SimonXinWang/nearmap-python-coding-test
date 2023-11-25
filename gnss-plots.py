@@ -54,13 +54,12 @@ class Const:
 
 
 # Delimiters used to separate data and labels. Used for the parse_all function.
-# DEFAULT_DELIMS = (",", ":", " ", "=")
 DEFAULT_DELIMS = (",")
 
 # Output .xlsx file name.
 OUTPUT_FILE_NAME = "flight_route.png"
 
-# part of progress solutions
+# ============================part of progress solutions============================
 # following three functions contain progressive work: 
 # 1. parse GPS.txt data to single list of containing GPGGA logs' raw 4 tuple values
 # 2. pass each line from a log file to parse function
@@ -165,7 +164,7 @@ def test_parse_all_raw_data(test_input=None, expected_test_input=None, delims=No
     else:
         return GNSS__FALSE
 
-# 
+# ============================start of final solution============================
 # Parse an individual line from a gps log file.
 # Args:
 #     line: Individual line of a log file.
@@ -249,7 +248,7 @@ def parse_all(log_file=None, delims=None):
     ret_latitude_list = []
     ret_longitude = []
     ret_latitude = []
-    error = []
+    error = GNSS__FALSE
     # try local file availability
     try:
         open(log_file, 'r')
@@ -326,8 +325,13 @@ def data_plot(latitude=None, longitude=None):
 # """
 def test_parse_all(test_input=None, expected_test_input=None, delims=None):
     test_input_list = []
-    expected_data_list = []
-    
+    expected_data_latitude_list = []
+    expected_data_longitude_list = []
+    test_input_longitude_list = []
+    test_input_latitude_list = []
+    ret_longitude = []
+    ret_latitude = []
+    error = GNSS__FALSE
     # try local file availability
     try:
         open(test_input, 'r')
@@ -337,31 +341,40 @@ def test_parse_all(test_input=None, expected_test_input=None, delims=None):
         print("ERROR:Could not find file for use.")
         time.sleep(2)
         quit()
-
+    
     # read local test files
     with open(test_input, 'r') as lf:
         file = lf.readlines()
         for line in file:
-            if (parse(line, delims) == GNSS__FALSE):
-                log.info("Not a GPGGA.")
+            error, ret_latitude, ret_longitude = parse(
+                line, delims)
+            if (error == GNSS__FALSE):
+                log.info("Not a GPGGA")
             else:
-                test_input_list.append(parse(line, delims))
-        print("extracted from test input of Long Lati data in GPGGA logs:")
-        print(test_input_list)
-    
+                test_input_latitude_list.append(ret_latitude)
+                test_input_longitude_list.append(ret_longitude)                
     # flatten returned nested list
-    flat_test_input_List = sum(test_input_list, [])    
+    flat_test_input_latitude_List = sum(test_input_latitude_list, [])
+    flat_test_input_longitude_List = sum(test_input_longitude_list, [])
+    print("extracted from test input of Long Lati data in GPGGA logs:")
+    print(flat_test_input_latitude_List)
+    print(flat_test_input_longitude_List)
 
     # read expected result
     with open(expected_test_input, 'r') as lf:
         file = lf.readlines()
-        for line in file:
-            expected_data_list.append(line.strip())
+        for index, line in enumerate(file):
+            if index == 0:
+                expected_data_latitude_list.append(float(line.strip()))
+            else:                
+                expected_data_longitude_list.append(float(line.strip()))
         print("expected test output list of Long Lati data in GPGGA logs:")
-        print(expected_data_list)
+        print(expected_data_latitude_list)
+        print(expected_data_longitude_list)
     
     # check if extracted data list is as expected
-    if expected_data_list == flat_test_input_List:
+    if expected_data_longitude_list == flat_test_input_longitude_List\
+            and expected_data_latitude_list == flat_test_input_latitude_List:
         return GNSS__TRUE
     else:
         return GNSS__FALSE
@@ -396,9 +409,9 @@ if __name__ == '__main__':
     test_data_input = os.path.abspath(Const.TEST_DATA_INPUT_LOCAL_PATH)
     expected_test_input = os.path.abspath(Const.EXPECTED_TEST_DATA_OUTPUT_PATH)
 
-    # test_result = test_parse_all(
-    #     test_data_input, expected_test_input, DEFAULT_DELIMS)
-    test_result = GNSS__TRUE
+    test_result = test_parse_all(
+        test_data_input, expected_test_input, DEFAULT_DELIMS)
+    
     if(test_result == GNSS__FALSE):
         log.info("unit test failed.")
         print("ERROR:unit test failed.")
