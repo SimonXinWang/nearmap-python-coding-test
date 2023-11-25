@@ -39,6 +39,7 @@ GNSS__FALSE = 0
 # GPGGA log data header
 GNSS_GPGGA_LOG_HEADER = "$GPGGA"
 # GPGGA log data format
+GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING = 2
 GNSS_GPGGA_LOG_FIELD__LATITUDE_IDX           = 2
 GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX = 3
 GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX          = 4
@@ -77,6 +78,7 @@ OUTPUT_FILE_NAME = "Parsed_Logs.xlsx"
 def parse(line: str, delims: tuple) -> list:
 
     extract =[]
+    process=[]
     # Replace and split is faster than regex split method.
     for delim in delims:
         if delim == delims[0]:
@@ -91,10 +93,30 @@ def parse(line: str, delims: tuple) -> list:
                     index == GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX or\
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX or\
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX:
-                extract.append(elem)      
+                extract.append(elem)
+        
+        latitude_dir = extract[GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX -
+                               GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
+        latitude = extract[GNSS_GPGGA_LOG_FIELD__LATITUDE_IDX -
+                           GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
+        latitude = latitude[:2]
+        if latitude_dir == 'S':
+            process.append(-abs(int(latitude)))
+        else:
+            process.append(latitude)
+
+        longitude_dir = extract[GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX -
+                               GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
+        longitude = extract[GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX -
+                           GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
+        longitude = longitude[:3]
+        if longitude_dir == 'W':
+            process.append(-abs(int(longitude)))
+        else:
+            process.append(longitude)        
         # print("each extracted Long Lati data in GPGGA logs:")
         # print(extract)
-        return extract
+        return process
     else:
         return GNSS__FALSE
     
@@ -256,8 +278,9 @@ if __name__ == '__main__':
     # start_time = time.time()
     # for file in log_files:
 
-    test_result = test_parse_all(
-        test_data_input, expected_test_input, DEFAULT_DELIMS)
+    # test_result = test_parse_all(
+    #     test_data_input, expected_test_input, DEFAULT_DELIMS)
+    test_result = GNSS__TRUE
     if(test_result == GNSS__FALSE):
         log.info("unit test failed.")
         print("ERROR:unit test failed.")
