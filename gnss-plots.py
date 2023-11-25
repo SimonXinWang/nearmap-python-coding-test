@@ -47,8 +47,7 @@ GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX= 5
 
 
 class Const:
-    """Constants used as inputs gnss data."""
-    # 
+    """Constants used as gnss data inputs."""
     TEST_DATA_INPUT_LOCAL_PATH = r"data\gps_test_input.txt"
     EXPECTED_TEST_DATA_OUTPUT_PATH = r"data\expected_gps_test_output.txt"
     DATA_LOCAL_PATH = r"data\gps.txt"
@@ -58,14 +57,8 @@ class Const:
 # DEFAULT_DELIMS = (",", ":", " ", "=")
 DEFAULT_DELIMS = (",")
 
-# Delimiters used to isolate labels. Used for the parse_labels function.
-LABEL_DELIMS = ("-", ":")
-
-# Delimiters used to isolate labels. Used for the parse_labels function.
-DATA_DELIMS = (" ", ",")
-
 # Output .xlsx file name.
-OUTPUT_FILE_NAME = "Parsed_Logs.xlsx"
+OUTPUT_FILE_NAME = "flight_route.png"
 
 # """
 # test GPGGA data extraction function: this is part of progress solutions which tests the
@@ -96,7 +89,7 @@ def test_parse_all_raw_data(test_input=None, expected_test_input=None, delims=No
         file = lf.readlines()
         for line in file:
             if (parse(line, delims) == GNSS__FALSE):
-                print("Not a GPGGA")
+                log.info("Not a GPGGA")
             else:
                 test_input_list.append(parse(line, delims))
         print("extracted from test input of Long Lati data in GPGGA logs:")
@@ -139,6 +132,7 @@ def parse(line: str, delims: tuple) -> list:
         else:
             line = line.replace(delim, delims[0])
     ret = line.split(delims[0])
+
     # extract longitude and latitude only if GPGGA log
     if GNSS_GPGGA_LOG_HEADER in line:
         for index, elem in enumerate(ret):
@@ -147,6 +141,11 @@ def parse(line: str, delims: tuple) -> list:
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX or\
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX:
                 extract.append(elem)
+        """
+        debug print::
+        print("each extracted Long Lati data in GPGGA logs:")
+        print(extract)
+        """
         # convert latitude from NMEA format to position format
         latitude_dir = extract[GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX -
                                GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
@@ -177,8 +176,6 @@ def parse(line: str, delims: tuple) -> list:
             process_longitude.append(-abs(longitude_converted))
         else:
             process_longitude.append(longitude_converted)
-        # print("each extracted Long Lati data in GPGGA logs:")
-        # print(extract)
         return GNSS__TRUE, process_latitude, process_longitude
     else:
         return GNSS__FALSE, process_latitude, process_longitude
@@ -188,14 +185,11 @@ def parse(line: str, delims: tuple) -> list:
 # represents a parsed GPGGA entry in the log file.
 # Args:
 #     log_file: Full path of the log file to be parsed.
-#     delims: Tuple conaining delimiter characters. If multiple sections, this will be a list
-#         of tuples.
-#     section_keys: Tuple containing unique words or phrases that denote the last line of a
-#         section within the log file.
+#     delims: Tuple confining delimiter characters.
 # Returns:
-#     List of lists where each "sub-list" represents a parsed line in the log file.
+#     List of lists where each "sub-list" represents a parsed GPGGA line in the GPS log file.
 # """
-def parse_all(log_file=None, delims=None, section_keys=None):
+def parse_all(log_file=None, delims=None):
     ret_longitude_list = []
     ret_latitude_list = []
     ret_longitude = []
@@ -212,58 +206,58 @@ def parse_all(log_file=None, delims=None, section_keys=None):
         
     with open(log_file, 'r') as lf:
         file = lf.readlines()
-        if section_keys is None:
-            # No separate sections.
-            for line in file:
-                error, ret_latitude, ret_longitude = parse(
-                    line, delims)
-                if (error == GNSS__FALSE):
-                    print("Not a GPGGA")
-                else:
-                    ret_latitude_list.append(ret_latitude)
-                    ret_longitude_list.append(ret_longitude)
-            print("extracted list of Long Lati data in GPGGA logs:")
-            print(ret_latitude_list)
-            print(ret_longitude_list)
+        for line in file:
+            error, ret_latitude, ret_longitude = parse(
+                line, delims)
+            if (error == GNSS__FALSE):                
+                log.info("Not a GPGGA")
+            else:
+                ret_latitude_list.append(ret_latitude)
+                ret_longitude_list.append(ret_longitude)
+        """
+        debug print: :
+        print("extracted list of Long Lati data in GPGGA logs:")
+        print(ret_latitude_list)
+        print(ret_longitude_list)
+        """
     return ret_latitude_list, ret_longitude_list
 
 
 # """
 # plot 2-D data
 # Args:
-#     latitude: x-axis values 
-#     longitude: y-axis values
+#     latitude in array values 
+#     longitude in array values
 # Returns:
 #     GNSS__TRUE - Success
 #     GNSS__FALSE - Failure
 # """
-def data_plot(latitude=None, longitude=None):
-    # np.array(ret)
-
-    # generating dummy Data for plotting
-    t = np.arange(0.0, 2.0, 0.01)
-    s = 1 + np.sin(2 * np.pi * t)
+def data_plot(latitude=None, longitude=None):   
+    """
+        # generating dummy Data for plotting as example        
+        t = np.arange(0.0, 2.0, 0.01)
+        s = 1 + np.sin(2 * np.pi * t)
+        # plotting
+        fig, ax = plt.subplots()
+        ax.plot(t, s)
+        ax.plot(latitude, longitude)
+    """
+    """
+    debug print::
     print(latitude)
     print(longitude)
-    # lat = np.array(latitude)
-    # long = np.array(longitude)
-
+    """
     # plotting
     fig, ax = plt.subplots()
     # ax.plot(t, s)
     ax.plot(latitude, longitude)
 
-    ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+    ax.set(xlabel='latitude (degree)', ylabel='longitude (degree)',
            title='Plot of flight route')
     ax.grid()
 
-    fig.savefig("flight_route.png")
+    fig.savefig(OUTPUT_FILE_NAME)
     plt.show()
-    #
-    # Debug print
-    #
-    print("Plotted successfully")
-    print("---------------------------------------------")
     return GNSS__TRUE
     
 # """
@@ -294,7 +288,7 @@ def test_parse_all(test_input=None, expected_test_input=None, delims=None):
         file = lf.readlines()
         for line in file:
             if (parse(line, delims) == GNSS__FALSE):
-                print("Not a GPGGA")
+                log.info("Not a GPGGA.")
             else:
                 test_input_list.append(parse(line, delims))
         print("extracted from test input of Long Lati data in GPGGA logs:")
@@ -363,5 +357,9 @@ if __name__ == '__main__':
         
         lat_array = np.array(flat_latitude_list)
         long_array = np.array(flat_longitude_list)
-        data_plot(lat_array, long_array)
+        if data_plot(lat_array, long_array) == GNSS__TRUE:
+            print("Plotting successfully")
+        else:
+            print("Plotting failed")
+        print("---------------------------------------------")
 #turn py to exe pyinstaller
