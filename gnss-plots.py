@@ -92,8 +92,8 @@ def parse(line: str, delims: tuple) -> list:
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX or\
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX:
                 extract.append(elem)      
-        print("each extracted Long Lati data in GPGGA logs:")
-        print(extract)
+        # print("each extracted Long Lati data in GPGGA logs:")
+        # print(extract)
         return extract
     else:
         return GNSS__FALSE
@@ -127,15 +127,11 @@ def parse_all(log_file=None, delims=None, section_keys=None):
         if section_keys is None:
             # No separate sections.
             for line in file:
-                ret.append(parse(line, delims))
-        else:
-            # Parse each section of the log file separately.
-            section_num = 0
-            for line in file:
-                ret.append(parse(line, delims[section_num]))
-                if section_num < len(section_keys):
-                    if section_keys[section_num] in line:
-                        section_num += 1
+                ret_list = parse(line, delims)
+                if (ret_list == GNSS__FALSE):
+                    print("Not a GPGGA")
+                else:
+                    ret.append(ret_list)                
             print("extracted list of Long Lati data in GPGGA logs:")
             print(ret)
     return ret
@@ -175,7 +171,7 @@ def data_plot(lattitude=None, longitude=None):
     return GNSS__TRUE
     
 # """
-# test GNSS data extraction function
+# test GPGGA data extraction function
 # Args:
 #     test_input: test input file
 #     expected_output: expected output file
@@ -186,7 +182,7 @@ def data_plot(lattitude=None, longitude=None):
 def test_parse_all(test_input=None, expected_test_input=None, delims=None):
     test_input_list = []
     expected_data_list = []
-    read_expected_data = []
+    
     # try local file availability
     try:
         open(test_input, 'r')
@@ -197,6 +193,7 @@ def test_parse_all(test_input=None, expected_test_input=None, delims=None):
         time.sleep(2)
         quit()
 
+    # read local test files
     with open(test_input, 'r') as lf:
         file = lf.readlines()
         for line in file:
@@ -207,21 +204,20 @@ def test_parse_all(test_input=None, expected_test_input=None, delims=None):
         print("extracted from test input of Long Lati data in GPGGA logs:")
         print(test_input_list)
     
+    # flatten returned nested list
     flat_test_input_List = sum(test_input_list, [])    
 
+    # read expected result
     with open(expected_test_input, 'r') as lf:
         file = lf.readlines()
         for line in file:
             expected_data_list.append(line.strip())
         print("expected test output list of Long Lati data in GPGGA logs:")
         print(expected_data_list)
-
+    
+    # check if extracted data list is as expected
     if expected_data_list == flat_test_input_List:
         return GNSS__TRUE
-        # expected_data_list = list(map(
-        #     read_expected_data.strip(), expected_data_list))                
-        # for i in read_expected_data:
-        #     expected_data_list.append(i.strip())
     else:
         return GNSS__FALSE
 
@@ -239,10 +235,8 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.withdraw()
     data_dir = None    
-    # folder = fd.askdirectory(title="Choose a folder containing log files")
-    
-    # os.path.directoryname
-    # 
+    # future enhancement to ask user to choose directory where data file exist
+    # folder = fd.askdirectory(title="Choose a folder containing log files")        
     # files = os.walk(folder)    
     log_files = []
     results = []
@@ -270,6 +264,7 @@ if __name__ == '__main__':
         time.sleep(2)
         quit()
     else:
+        print("unit test passed, proceed to main tool feature.")
         results.append(parse_all(data_file, DEFAULT_DELIMS))
         data_plot()
 #turn py to exe pyinstaller
