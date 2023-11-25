@@ -94,26 +94,33 @@ def parse(line: str, delims: tuple) -> list:
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX or\
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX:
                 extract.append(elem)
-        
+        # convert latitude from NMEA format to position format
         latitude_dir = extract[GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX -
                                GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
         latitude = extract[GNSS_GPGGA_LOG_FIELD__LATITUDE_IDX -
                            GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
-        latitude = latitude[:2]
+        latitude_mm = latitude[2:8]
+        latitude_dd = latitude[:2]
+        latitude_conversion = float(latitude_mm) / 60
+        latitude_converted = float(latitude_dd) + latitude_conversion
         if latitude_dir == 'S':
-            process.append(-abs(int(latitude)))
+            process.append(-abs(latitude_converted))
         else:
-            process.append(latitude)
-
+            process.append(latitude_converted)
+        
+        # convert longitude from NMEA format to position format
         longitude_dir = extract[GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX -
                                GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
         longitude = extract[GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX -
                            GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
-        longitude = longitude[:3]
+        longitude_mm = longitude[3:7]
+        longitude_dd = longitude[:3]
+        longitude_conversion = float(longitude_mm) / 60
+        longitude_converted = float(longitude_dd) + longitude_conversion        
         if longitude_dir == 'W':
-            process.append(-abs(int(longitude)))
+            process.append(-abs(longitude_converted))
         else:
-            process.append(longitude)        
+            process.append(longitude_converted)
         # print("each extracted Long Lati data in GPGGA logs:")
         # print(extract)
         return process
