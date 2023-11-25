@@ -44,13 +44,13 @@ GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX = 3
 GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX          = 4
 GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX= 5
 
-# Section keys used to denote the last line of text in a log file "section" where formatting
-# is very different in the following section. These should be unique words or phrases. Tuple
-# items are in order of the section number. i.e. SECTION_KEYS[0] relates to the end of
-# the first section in the log file. The last section at the end of the log file does not need a
-# section delimiter.
-SECTION_KEYS = (" 2023", "Device Chemistry")
-SECTION_DELIMS = [(" ", ","), ("=",)]
+
+class Const:
+    """Constants used as inputs gnss data."""
+    # 
+    TEST_DATA_LOCAL_PATH = r"data\.txt"
+    DATA_LOCAL_PATH = r"data\gps.txt"
+
 
 # Delimiters used to separate data and labels. Used for the parse_all function.
 # DEFAULT_DELIMS = (",", ":", " ", "=")
@@ -164,6 +164,39 @@ def data_plot(Lattitude=None, Longitude=None):
     return GNSS__TURE
 
 
+# """
+# test parse_all function
+# Args:
+#     test_input: test input file
+#     expected_output: expected output file
+# Returns:
+#     GNSS__TRUE - Success
+#     GNSS__FALSE - Failure
+# """
+def test_parse_all(Lattitude=None, Longitude=None):
+    # np.array(ret)
+
+    # generating dummy Data for plotting
+    t = np.arange(0.0, 2.0, 0.01)
+    s = 1 + np.sin(2 * np.pi * t)
+
+    # plotting
+    fig, ax = plt.subplots()
+    ax.plot(t, s)
+
+    ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+           title='Plot of flight route')
+    ax.grid()
+
+    fig.savefig("flight_route.png")
+    plt.show()
+    #
+    # Debug print
+    #
+    print("Plotted successfully")    
+    print("---------------------------------------------")
+    return GNSS__TURE
+
 # @brief    Main for gnss-plots (a tool which is plotting the flight route of a plane.) that does:
 #           Execute unit test code for parse_all function
 #           Decode data file
@@ -176,29 +209,31 @@ if __name__ == '__main__':
 
     root = tk.Tk()
     root.withdraw()
-    folder = fd.askdirectory(title="Choose a folder containing log files")
-
-    if not folder:
-        log.info("No folder selected.")
-        time.sleep(2)
-        quit()
+    data_dir = None    
+    # folder = fd.askdirectory(title="Choose a folder containing log files")
     
     # os.path.directoryname
-    files = os.walk(folder)
+    # 
+    # files = os.walk(folder)    
     log_files = []
     results = []
+    data_file = os.path.abspath(Const.DATA_LOCAL_PATH)
+    if not data_file:
+        log.info("No data file.")
+        time.sleep(2)
+        quit()
+    # for root, directories, filenames in os.walk(folder):
+    #     for filename in filenames:
+    #         if filename.endswith(".txt"):
+    #             log.debug(filename)
+    #             log_files.append(os.path.join(root, filename))
 
-    for root, directories, filenames in os.walk(folder):
-        for filename in filenames:
-            if filename.endswith(".log") or filename.endswith(".txt"):
-                log.debug(filename)
-                log_files.append(os.path.join(root, filename))
+    #     log.info(f"Number of log files to parse: {len(log_files)}")
 
-        log.info("Number of log files to parse: {len(log_files)}")
+    # number of files to be parsed
+    # start_time = time.time()
+    # for file in log_files:
+    results.append(parse_all(data_file, DEFAULT_DELIMS))
 
-    # Based on number of files to be parsed, determine the most efficient processing method.
-    start_time = time.time()
-    for file in log_files:
-        results.append(parse_all(file, DEFAULT_DELIMS))
     data_plot()
 #turn py to exe pyinstaller
