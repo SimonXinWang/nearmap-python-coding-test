@@ -1,12 +1,11 @@
 #!/usr/bin/python3.11
-
 """
   **************************************************************************************************
   * @file    gnss-plots.py
   * @author  Simon Wang
   * @version V1.0.0
   * @date    25-Nov-23
-  * @brief   This module is used for performing data plotting
+  * @brief   This module is a solution for nearmap-python-coding-test
   *
   @verbatim
   **************************************************************************************************
@@ -14,10 +13,11 @@
   **************************************************************************************************
     Revision Number     : 1.0.0
     Revision By         : 
-    Date                : 24-Nov-23
+    Date                : 25-Nov-23
     Description         : 
   **************************************************************************************************
 """
+
 # for plotting function
 import numpy as np
 import matplotlib.pyplot as plt
@@ -30,9 +30,7 @@ import openpyxl as xlsx
 import time
 import os
 
-
 # Error Codes
-GNSS__ERROR_INVALID_PARAMETER = 2
 GNSS__TRUE = 1
 GNSS__FALSE = 0
 
@@ -45,22 +43,21 @@ GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX = 3
 GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX          = 4
 GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX= 5
 
-
+# PATH for data log and test data log
 class Const:
     """Constants used as gnss data inputs."""
     TEST_DATA_INPUT_LOCAL_PATH = r"data\gps_test_input.txt"
     EXPECTED_TEST_DATA_OUTPUT_PATH = r"data\expected_gps_test_output.txt"
     DATA_LOCAL_PATH = r"data\gps.txt"
 
-
 # Delimiters used to separate data and labels. Used for the parse_all function.
 DEFAULT_DELIMS = (",")
 
-# Output .xlsx file name.
+# Output plot file name.
 OUTPUT_FILE_NAME = "flight_route.png"
 
-# ============================part of progress solutions============================
-# following three functions contain progressive work: 
+# ============================part of progressive solutions============================
+# following three functions contain progressive work during the task: 
 # 1. parse GPS.txt data to single list of containing GPGGA logs' raw 4 tuple values
 # 2. pass each line from a log file to parse function
 # 3. unit test code for testing item 1 and 2 (i.e. verify if GPGGA items in GPS.txt 
@@ -165,11 +162,11 @@ def test_parse_all_raw_data(test_input=None, expected_test_input=None, delims=No
         return GNSS__FALSE
 
 # ============================start of final solution============================
-# Parse an individual line from a gps log file.
-# Args:
+# @param: Parse an individual line from a gps log file.
+# @param:
 #     line: Individual line of a log file.
 #     delims: Delimiters used to separate labels and data.
-# Returns:
+# @returns:
 #     List of parsed data in longitude latitude position format
 # 
 def parse(line: str, delims: tuple) -> list:
@@ -234,13 +231,13 @@ def parse(line: str, delims: tuple) -> list:
     else:
         return GNSS__FALSE, process_latitude, process_longitude
     
-# """
-# Parse everything in a GPS log file. return a list of lists where each "sub-list"
+#
+# @brief: Parse everything in a GPS log file. return a list of lists where each "sub-list"
 # represents a parsed GPGGA entry in the log file.
-# Args:
+# @param:
 #     log_file: Full path of the log file to be parsed.
 #     delims: Tuple confining delimiter characters.
-# Returns:
+# @returns:
 #     List of lists where each "sub-list" represents a parsed GPGGA line in the GPS log file.
 # """
 def parse_all(log_file=None, delims=None):
@@ -277,12 +274,12 @@ def parse_all(log_file=None, delims=None):
     return ret_latitude_list, ret_longitude_list
 
 
-# """
-# plot 2-D data
-# Args:
+# 
+# @brief plot 2-D data
+# @param: 
 #     latitude in array values 
 #     longitude in array values
-# Returns:
+# @returns:
 #     GNSS__TRUE - Success
 #     GNSS__FALSE - Failure
 # """
@@ -302,8 +299,7 @@ def data_plot(latitude=None, longitude=None):
     print(longitude)
     """
     # plotting
-    fig, ax = plt.subplots()
-    # ax.plot(t, s)
+    fig, ax = plt.subplots()    
     ax.plot(latitude, longitude)
 
     ax.set(xlabel='latitude (degree)', ylabel='longitude (degree)',
@@ -314,15 +310,15 @@ def data_plot(latitude=None, longitude=None):
     plt.show()
     return GNSS__TRUE
     
-# """
-# test GPGGA data extraction function
-# Args:
+#
+# @brief: test GPGGA data extraction function
+# @param:
 #     test_input: test input file
 #     expected_output: expected output file
-# Returns:
+# @returns:
 #     GNSS__TRUE - Success
 #     GNSS__FALSE - Failure
-# """
+#
 def test_parse_all(test_input=None, expected_test_input=None, delims=None):
     test_input_list = []
     expected_data_latitude_list = []
@@ -420,14 +416,16 @@ if __name__ == '__main__':
     else:
         print("unit test passed, proceed to main tool feature.")
         [latitude_list, longitude_list] = parse_all(data_file, DEFAULT_DELIMS)
+        # convert nested list to flat list
         flat_latitude_list = sum(latitude_list, [])
         flat_longitude_list = sum(longitude_list, [])
         
+        # convert list to array
         lat_array = np.array(flat_latitude_list)
         long_array = np.array(flat_longitude_list)
         if data_plot(lat_array, long_array) == GNSS__TRUE:
             print("Plotting successfully")
         else:
             print("Plotting failed")
-        print("---------------------------------------------")
+    print("------------------main end---------------------------")
 
