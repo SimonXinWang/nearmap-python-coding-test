@@ -94,7 +94,9 @@ def parse(line: str, delims: tuple) -> list:
                 extract.append(elem)      
         print("each extracted Long Lati data in GPGGA logs:")
         print(extract)
-    return extract
+        return extract
+    else:
+        return GNSS__FALSE
     
 # """
 # Parse everything in a log file. return a list of lists where each "sub-list"
@@ -142,13 +144,13 @@ def parse_all(log_file=None, delims=None, section_keys=None):
 # """
 # plot 2-D data
 # Args:
-#     Lattitude: x-axis values 
-#     Longitude: y-axis values
+#     lattitude: x-axis values 
+#     longitude: y-axis values
 # Returns:
 #     GNSS__TRUE - Success
 #     GNSS__FALSE - Failure
 # """
-def data_plot(Lattitude=None, Longitude=None):
+def data_plot(lattitude=None, longitude=None):
     # np.array(ret)
 
     # generating dummy Data for plotting
@@ -175,7 +177,7 @@ def data_plot(Lattitude=None, Longitude=None):
 
 
 # """
-# test parse_all function
+# test GNSS data extraction function
 # Args:
 #     test_input: test input file
 #     expected_output: expected output file
@@ -183,34 +185,42 @@ def data_plot(Lattitude=None, Longitude=None):
 #     GNSS__TRUE - Success
 #     GNSS__FALSE - Failure
 # """
-def test_parse_all(Lattitude=None, Longitude=None):
-    ret = []
-
+def test_parse_all(test_input=None, expected_test_input=None, delims=None):
+    test_input_list = []
+    expected_data_list = []
+    read_expected_data = []
     # try local file availability
     try:
-        open(log_file, 'r')
+        open(test_input, 'r')
+        open(expected_test_input, 'r')
     except:
-        log.info("No data file.")
-        print("ERROR:Could not find data log for use.")
+        log.info("No file.")
+        print("ERROR:Could not find file for use.")
         time.sleep(2)
         quit()
 
-    with open(log_file, 'r') as lf:
+    with open(test_input, 'r') as lf:
         file = lf.readlines()
-        if section_keys is None:
-            # No separate sections.
-            for line in file:
-                ret.append(parse(line, delims))
-        else:
-            # Parse each section of the log file separately.
-            section_num = 0
-            for line in file:
-                ret.append(parse(line, delims[section_num]))
-                if section_num < len(section_keys):
-                    if section_keys[section_num] in line:
-                        section_num += 1
-            print("extracted list of Long Lati data in GPGGA logs:")
-            print(ret)    
+        for line in file:
+            if (parse(line, delims) == GNSS__FALSE):
+                print("Not a GPGGA")
+            else:
+                test_input_list.append(parse(line, delims))
+        print("extracted from test input of Long Lati data in GPGGA logs:")
+        print(test_input_list)
+    
+    with open(expected_test_input, 'r') as lf:
+        file = lf.readlines()
+        for line in file:
+            expected_data_list.append(line.strip())
+
+        # expected_data_list = list(map(
+        #     read_expected_data.strip(), expected_data_list))                
+        # for i in read_expected_data:
+        #     expected_data_list.append(i.strip())
+        print("expected test output list of Long Lati data in GPGGA logs:")
+        print(expected_data_list)
+
     return GNSS__TURE
 
 # @brief    Main for gnss-plots (a tool which is plotting the flight route of a plane.) that does:
@@ -233,7 +243,10 @@ if __name__ == '__main__':
     # files = os.walk(folder)    
     log_files = []
     results = []
+    test_result = None
     data_file = os.path.abspath(Const.DATA_LOCAL_PATH)
+    test_data_input = os.path.abspath(Const.TEST_DATA_INPUT_LOCAL_PATH)
+    expected_test_input = os.path.abspath(Const.EXPECTED_TEST_DATA_OUTPUT_PATH)
     # for root, directories, filenames in os.walk(folder):
     #     for filename in filenames:
     #         if filename.endswith(".txt"):
@@ -245,7 +258,15 @@ if __name__ == '__main__':
     # number of files to be parsed
     # start_time = time.time()
     # for file in log_files:
-    results.append(parse_all(data_file, DEFAULT_DELIMS))
 
-    data_plot()
+    test_result = test_parse_all(
+        test_data_input, expected_test_input, DEFAULT_DELIMS)
+    if(test_result == GNSS__FALSE):
+        log.info("No test data file.")
+        print("ERROR:Could not find test data file for use.")
+        time.sleep(2)
+        quit()
+    else:
+        results.append(parse_all(data_file, DEFAULT_DELIMS))
+        data_plot()
 #turn py to exe pyinstaller
