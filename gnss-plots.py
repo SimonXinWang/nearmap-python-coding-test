@@ -130,7 +130,8 @@ def test_parse_all_raw_data(test_input=None, expected_test_input=None, delims=No
 def parse(line: str, delims: tuple) -> list:
 
     extract =[]
-    process=[]
+    process_latitude=[]
+    process_longitude=[]
     # Replace and split is faster than regex split method.
     for delim in delims:
         if delim == delims[0]:
@@ -158,9 +159,9 @@ def parse(line: str, delims: tuple) -> list:
         latitude_conversion = float(latitude_mm) / 60
         latitude_converted = float(latitude_dd) + latitude_conversion
         if latitude_dir == 'S':
-            process.append(-abs(latitude_converted))
+            process_latitude.append(-abs(latitude_converted))
         else:
-            process.append(latitude_converted)
+            process_latitude.append(latitude_converted)
         
         # convert longitude from NMEA format to position format
         longitude_dir = extract[GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX -
@@ -173,14 +174,14 @@ def parse(line: str, delims: tuple) -> list:
         longitude_conversion = float(longitude_mm) / 60
         longitude_converted = float(longitude_dd) + longitude_conversion        
         if longitude_dir == 'W':
-            process.append(-abs(longitude_converted))
+            process_longitude.append(-abs(longitude_converted))
         else:
-            process.append(longitude_converted)
+            process_longitude.append(longitude_converted)
         # print("each extracted Long Lati data in GPGGA logs:")
         # print(extract)
-        return process
+        return GNSS__TRUE, process_latitude, process_longitude
     else:
-        return GNSS__FALSE
+        return GNSS__FALSE, process_latitude, process_longitude
     
 # """
 # Parse everything in a GPS log file. return a list of lists where each "sub-list"
@@ -195,8 +196,11 @@ def parse(line: str, delims: tuple) -> list:
 #     List of lists where each "sub-list" represents a parsed line in the log file.
 # """
 def parse_all(log_file=None, delims=None, section_keys=None):
-    ret = []
-
+    ret_longitude_list = []
+    ret_latitude_list = []
+    ret_longitude = []
+    ret_latitude = []
+    error = []
     # try local file availability
     try:
         open(log_file, 'r')
@@ -211,35 +215,43 @@ def parse_all(log_file=None, delims=None, section_keys=None):
         if section_keys is None:
             # No separate sections.
             for line in file:
-                ret_list = parse(line, delims)
-                if (ret_list == GNSS__FALSE):
+                error, ret_latitude, ret_longitude = parse(
+                    line, delims)
+                if (error == GNSS__FALSE):
                     print("Not a GPGGA")
                 else:
-                    ret.append(ret_list)                
+                    ret_latitude_list.append(ret_latitude)
+                    ret_longitude_list.append(ret_longitude)
             print("extracted list of Long Lati data in GPGGA logs:")
-            print(ret)
-    return ret
+            print(ret_latitude_list)
+            print(ret_longitude_list)
+    return ret_latitude_list, ret_longitude_list
 
 
 # """
 # plot 2-D data
 # Args:
-#     lattitude: x-axis values 
+#     latitude: x-axis values 
 #     longitude: y-axis values
 # Returns:
 #     GNSS__TRUE - Success
 #     GNSS__FALSE - Failure
 # """
-def data_plot(lattitude=None, longitude=None):
+def data_plot(latitude=None, longitude=None):
     # np.array(ret)
 
     # generating dummy Data for plotting
     t = np.arange(0.0, 2.0, 0.01)
     s = 1 + np.sin(2 * np.pi * t)
+    print(latitude)
+    print(longitude)
+    # lat = np.array(latitude)
+    # long = np.array(longitude)
 
     # plotting
     fig, ax = plt.subplots()
-    ax.plot(t, s)
+    # ax.plot(t, s)
+    ax.plot(latitude, longitude)
 
     ax.set(xlabel='time (s)', ylabel='voltage (mV)',
            title='Plot of flight route')
@@ -345,6 +357,11 @@ if __name__ == '__main__':
         quit()
     else:
         print("unit test passed, proceed to main tool feature.")
-        results.append(parse_all(data_file, DEFAULT_DELIMS))
-        data_plot()
+        [latitude_list, longitude_list] = parse_all(data_file, DEFAULT_DELIMS)
+        flat_latitude_list = sum(latitude_list, [])
+        flat_longitude_list = sum(longitude_list, [])
+        
+        lat_array = np.array(flat_latitude_list)
+        long_array = np.array(flat_longitude_list)
+        data_plot(lat_array, long_array)
 #turn py to exe pyinstaller
