@@ -60,16 +60,69 @@ DEFAULT_DELIMS = (",")
 # Output .xlsx file name.
 OUTPUT_FILE_NAME = "flight_route.png"
 
-# """
-# test GPGGA data extraction function: this is part of progress solutions which tests the
-# extracted GPS.txt file which contain all extracted GPGGA messages with longi and lati values only
-# Args:
-#     test_input: test input file
-#     expected_output: expected output file
-# Returns:
-#     GNSS__TRUE - Success
-#     GNSS__FALSE - Failure
-# """
+# part of progress solutions
+# following three functions contain progressive work: 
+# 1. parse GPS.txt data to single list of containing GPGGA logs' raw 4 tuple values
+# 2. pass each line from a log file to parse function
+# 3. unit test code for testing item 1 and 2 (i.e. verify if GPGGA items in GPS.txt 
+#    is extracted correctly)
+# 
+# 1. parse GPS.txt data to single list of containing GPGGA logs' raw 4 tuple values
+def parse_raw(line: str, delims: tuple) -> list:
+    extract =[]
+    # Replace and split is faster than regex split method.
+    for delim in delims:
+        if delim == delims[0]:
+            pass
+        else:
+            line = line.replace(delim, delims[0])
+    ret = line.split(delims[0])
+    # extract longitude and latitude only if GPGGA log
+    if GNSS_GPGGA_LOG_HEADER in line:
+        for index, elem in enumerate(ret):
+            if index == GNSS_GPGGA_LOG_FIELD__LATITUDE_IDX or \
+                    index == GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX or\
+                    index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX or\
+                    index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX:
+                extract.append(elem)      
+        print("each extracted Long Lati data in GPGGA logs:")
+        print(extract)
+        return extract
+    else:
+        return GNSS__FALSE
+    
+# 2. pass each line from a log file to parse function
+def parse_all_extract_raw(log_file=None, delims=None, section_keys=None):
+    ret = []
+    # try local file availability
+    try:
+        open(log_file, 'r')
+    except:
+        log.info("No data file.")
+        print("ERROR:Could not find data log for use.")
+        time.sleep(2)
+        quit()
+        
+    with open(log_file, 'r') as lf:
+        file = lf.readlines()
+        if section_keys is None:
+            # No separate sections.
+            for line in file:
+                ret.append(parse(line, delims))
+        else:
+            # Parse each section of the log file separately.
+            section_num = 0
+            for line in file:
+                ret.append(parse(line, delims[section_num]))
+                if section_num < len(section_keys):
+                    if section_keys[section_num] in line:
+                        section_num += 1
+            print("extracted list of Long Lati data in GPGGA logs:")
+            print(ret)
+    return ret
+
+# 3. unit test code for testing item 1 and 2 (i.e. verify if GPGGA items in GPS.txt
+#    is extracted correctly)
 def test_parse_all_raw_data(test_input=None, expected_test_input=None, delims=None):
     test_input_list = []
     expected_data_list = []
@@ -157,6 +210,7 @@ def parse(line: str, delims: tuple) -> list:
         latitude_dd = latitude[:2]        
         latitude_conversion = float(latitude_mm) / 60
         latitude_converted = float(latitude_dd) + latitude_conversion
+        # turn latitude direction to position signs
         if latitude_dir == 'S':
             process_latitude.append(-abs(latitude_converted))
         else:
@@ -172,6 +226,7 @@ def parse(line: str, delims: tuple) -> list:
         longitude_dd = longitude[:3]
         longitude_conversion = float(longitude_mm) / 60
         longitude_converted = float(longitude_dd) + longitude_conversion        
+        # turn longitude direction to position signs
         if longitude_dir == 'W':
             process_longitude.append(-abs(longitude_converted))
         else:
@@ -362,4 +417,4 @@ if __name__ == '__main__':
         else:
             print("Plotting failed")
         print("---------------------------------------------")
-#turn py to exe pyinstaller
+
