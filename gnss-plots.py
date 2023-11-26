@@ -42,6 +42,18 @@ GNSS_GPGGA_LOG_FIELD__LATITUDE_IDX           = 2
 GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX = 3
 GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX          = 4
 GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX= 5
+GNSS_GPGGA_LOG_FIELD__LATITUDE_MINUTES_START_IDX= 2
+GNSS_GPGGA_LOG_FIELD__LATITUDE_MINUTES_END_IDX = 8
+GNSS_GPGGA_LOG_FIELD__LONGITUDE_MINUTES_START_IDX= 3
+GNSS_GPGGA_LOG_FIELD__LONGITUDE_MINUTES_END_IDX = 7
+GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTOR_SOUTH_CHAR = 'S'
+GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTOR_WEST_CHAR = 'W'
+GNSS_GPGGA_LOG_FIELD__MINUTE_DEGREE_CONVERSION_FACTOR = 60
+# gnss plot tool unit test data file format
+GNSS__TEST_FILE_FORMAT_LATITUDE_VALUE_LINE_NUMBER = 0
+
+# gnss plot tool user interactive pause time
+GNSS__USER_INTERACTIVE_SLEEP_BEFORE_QUIT_PROGRAM_SECOND = 2
 
 # PATH for data log and test data log
 class Const:
@@ -50,8 +62,9 @@ class Const:
     EXPECTED_TEST_DATA_OUTPUT_PATH = r"data\expected_gps_test_output.txt"
     DATA_LOCAL_PATH = r"data\gps.txt"
 
-# Delimiters used to separate data and labels. Used for the parse_all function.
+# Delimiters used in GPGGA to separate data and labels. Used for the parse_all function.
 DEFAULT_DELIMS = (",")
+DEFAULT_DELIMS__GNSS_GPGGA_LOG_FIELD_DELIMITERS_INDEX = 0
 
 # Output plot file name.
 OUTPUT_FILE_NAME = "flight_route.png"
@@ -68,11 +81,11 @@ def parse_raw(line: str, delims: tuple) -> list:
     extract =[]
     # Replace and split is faster than regex split method.
     for delim in delims:
-        if delim == delims[0]:
+        if delim == delims[DEFAULT_DELIMS__GNSS_GPGGA_LOG_FIELD_DELIMITERS_INDEX]:
             pass
         else:
-            line = line.replace(delim, delims[0])
-    ret = line.split(delims[0])
+            line = line.replace(delim, delims[DEFAULT_DELIMS__GNSS_GPGGA_LOG_FIELD_DELIMITERS_INDEX])
+    ret = line.split(delims[DEFAULT_DELIMS__GNSS_GPGGA_LOG_FIELD_DELIMITERS_INDEX])
     # extract longitude and latitude only if GPGGA log
     if GNSS_GPGGA_LOG_HEADER in line:
         for index, elem in enumerate(ret):
@@ -81,14 +94,14 @@ def parse_raw(line: str, delims: tuple) -> list:
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX or\
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX:
                 extract.append(elem)      
-        print("each extracted Long Lati data in GPGGA logs:")
+        print("each extracted Longitude Latitude data in GPGGA logs:")
         print(extract)
         return extract
     else:
         return GNSS__FALSE
     
 # 2. pass each line from a log file to parse function
-def parse_all_extract_raw(log_file=None, delims=None, section_keys=None):
+def parse_all_extract_raw(log_file=None, delims=None):
     ret = []
     # try local file availability
     try:
@@ -96,25 +109,15 @@ def parse_all_extract_raw(log_file=None, delims=None, section_keys=None):
     except:
         log.info("No data file.")
         print("ERROR:Could not find data log for use.")
-        time.sleep(2)
+        time.sleep(GNSS__USER_INTERACTIVE_SLEEP_BEFORE_QUIT_PROGRAM_SECOND)
         quit()
         
     with open(log_file, 'r') as lf:
         file = lf.readlines()
-        if section_keys is None:
-            # No separate sections.
-            for line in file:
-                ret.append(parse(line, delims))
-        else:
-            # Parse each section of the log file separately.
-            section_num = 0
-            for line in file:
-                ret.append(parse(line, delims[section_num]))
-                if section_num < len(section_keys):
-                    if section_keys[section_num] in line:
-                        section_num += 1
-            print("extracted list of Long Lati data in GPGGA logs:")
-            print(ret)
+        for line in file:
+            ret.append(parse(line, delims))
+        print("extracted list of Long Lati data in GPGGA logs:")
+        print(ret)
     return ret
 
 # 3. unit test code for testing item 1 and 2 (i.e. verify if GPGGA items in GPS.txt
@@ -130,7 +133,7 @@ def test_parse_all_raw_data(test_input=None, expected_test_input=None, delims=No
     except:
         log.info("No file.")
         print("ERROR:Could not find file for use.")
-        time.sleep(2)
+        time.sleep(GNSS__USER_INTERACTIVE_SLEEP_BEFORE_QUIT_PROGRAM_SECOND)
         quit()
 
     # read local test files
@@ -176,11 +179,11 @@ def parse(line: str, delims: tuple) -> list:
     process_longitude=[]
     # Replace and split is faster than regex split method.
     for delim in delims:
-        if delim == delims[0]:
+        if delim == delims[DEFAULT_DELIMS__GNSS_GPGGA_LOG_FIELD_DELIMITERS_INDEX]:
             pass
         else:
-            line = line.replace(delim, delims[0])
-    ret = line.split(delims[0])
+            line = line.replace(delim, delims[DEFAULT_DELIMS__GNSS_GPGGA_LOG_FIELD_DELIMITERS_INDEX])
+    ret = line.split(delims[DEFAULT_DELIMS__GNSS_GPGGA_LOG_FIELD_DELIMITERS_INDEX])
 
     # extract longitude and latitude only if GPGGA log
     if GNSS_GPGGA_LOG_HEADER in line:
@@ -202,12 +205,14 @@ def parse(line: str, delims: tuple) -> list:
                            GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
         # conversion based on GPS Latitude Longitude Conversion Guide
         # https: // www.siretta.com/2023/01/gps-latitude-longitude-conversion-guide/
-        latitude_mm = latitude[2:8]
-        latitude_dd = latitude[:2]        
-        latitude_conversion = float(latitude_mm) / 60
+        latitude_mm = latitude[GNSS_GPGGA_LOG_FIELD__LATITUDE_MINUTES_START_IDX:
+                               GNSS_GPGGA_LOG_FIELD__LATITUDE_MINUTES_END_IDX]
+        latitude_dd = latitude[:GNSS_GPGGA_LOG_FIELD__LATITUDE_MINUTES_START_IDX]
+        latitude_conversion = float(
+            latitude_mm) / GNSS_GPGGA_LOG_FIELD__MINUTE_DEGREE_CONVERSION_FACTOR
         latitude_converted = float(latitude_dd) + latitude_conversion
         # turn latitude direction to position signs
-        if latitude_dir == 'S':
+        if latitude_dir == GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTOR_SOUTH_CHAR:
             process_latitude.append(-abs(latitude_converted))
         else:
             process_latitude.append(latitude_converted)
@@ -218,12 +223,14 @@ def parse(line: str, delims: tuple) -> list:
         longitude = extract[GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX -
                            GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
         # conversion based on GPS Latitude Longitude Conversion Guide
-        longitude_mm = longitude[3:7]
-        longitude_dd = longitude[:3]
-        longitude_conversion = float(longitude_mm) / 60
+        longitude_mm = longitude[GNSS_GPGGA_LOG_FIELD__LONGITUDE_MINUTES_START_IDX:
+                                 GNSS_GPGGA_LOG_FIELD__LONGITUDE_MINUTES_END_IDX]
+        longitude_dd = longitude[:GNSS_GPGGA_LOG_FIELD__LONGITUDE_MINUTES_START_IDX]
+        longitude_conversion = float(
+            longitude_mm) / GNSS_GPGGA_LOG_FIELD__MINUTE_DEGREE_CONVERSION_FACTOR
         longitude_converted = float(longitude_dd) + longitude_conversion        
         # turn longitude direction to position signs
-        if longitude_dir == 'W':
+        if longitude_dir == GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTOR_WEST_CHAR:
             process_longitude.append(-abs(longitude_converted))
         else:
             process_longitude.append(longitude_converted)
@@ -252,7 +259,8 @@ def parse_all(log_file=None, delims=None):
     except:
         log.info("No data file.")
         print("ERROR:Could not find data log for use.")
-        time.sleep(2)
+        # sleep 2 seconds
+        time.sleep(GNSS__USER_INTERACTIVE_SLEEP_BEFORE_QUIT_PROGRAM_SECOND)
         quit()
         
     with open(log_file, 'r') as lf:
@@ -335,7 +343,8 @@ def test_parse_all(test_input=None, expected_test_input=None, delims=None):
     except:
         log.info("No file.")
         print("ERROR:Could not find file for use.")
-        time.sleep(2)
+        # sleep 2 seconds
+        time.sleep(GNSS__USER_INTERACTIVE_SLEEP_BEFORE_QUIT_PROGRAM_SECOND)
         quit()
     
     # read local test files
@@ -359,12 +368,12 @@ def test_parse_all(test_input=None, expected_test_input=None, delims=None):
     # read expected result
     with open(expected_test_input, 'r') as lf:
         file = lf.readlines()
-        for index, line in enumerate(file):
-            if index == 0:
+        for index, line in enumerate(file):            
+            if index == GNSS__TEST_FILE_FORMAT_LATITUDE_VALUE_LINE_NUMBER:
                 expected_data_latitude_list.append(float(line.strip()))
             else:                
                 expected_data_longitude_list.append(float(line.strip()))
-        print("expected test output list of Long Lati data in GPGGA logs:")
+        print("expected test output list of Longitude Latitude data in GPGGA logs:")
         print(expected_data_latitude_list)
         print(expected_data_longitude_list)
     
@@ -411,7 +420,8 @@ if __name__ == '__main__':
     if(test_result == GNSS__FALSE):
         log.info("unit test failed.")
         print("ERROR:unit test failed.")
-        time.sleep(2)
+        # sleep 2 seconds
+        time.sleep(GNSS__USER_INTERACTIVE_SLEEP_BEFORE_QUIT_PROGRAM_SECOND)
         quit()
     else:
         print("unit test passed, proceed to main tool feature.")
