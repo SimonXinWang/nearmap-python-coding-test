@@ -192,11 +192,18 @@ def parse(line: str, delims: tuple) -> list:
                     index == GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX or\
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_IDX or\
                     index == GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX:
+                """
+                Nearmap feedback:A lot of overhead in the code such as copying and moving data.
+                """
                 extract.append(elem)
         """
         debug print::
         print("each extracted Long Lati data in GPGGA logs:")
         print(extract)
+        """
+
+        """
+        Nearmap feedback:A lot of overhead in the code such as copying and moving data.
         """
         # convert latitude from NMEA format to position format
         latitude_dir = extract[GNSS_GPGGA_LOG_FIELD__LATITUDE_DIRECTION_IDX -
@@ -217,6 +224,9 @@ def parse(line: str, delims: tuple) -> list:
         else:
             process_latitude.append(latitude_converted)
         
+        """
+        Nearmap feedback:A lot of overhead in the code such as copying and moving data.
+        """
         # convert longitude from NMEA format to position format
         longitude_dir = extract[GNSS_GPGGA_LOG_FIELD__LONGITUDE_DIRECTION_IDX -
                                GNSS_GPGGA_LOG_FIELD__TO_EXTRACT_IDX_CHANGE_MAPPING]
@@ -271,6 +281,9 @@ def parse_all(log_file=None, delims=None):
             if (error == GNSS__FALSE):                
                 log.info("Not a GPGGA")
             else:
+                """
+                Nearmap feedback:A lot of overhead in the code such as copying and moving data.
+                """
                 ret_latitude_list.append(ret_latitude)
                 ret_longitude_list.append(ret_longitude)
         """
@@ -356,6 +369,9 @@ def test_parse_all(test_input=None, expected_test_input=None, delims=None):
             if (error == GNSS__FALSE):
                 log.info("Not a GPGGA")
             else:
+                """
+                Nearmap feedback:A lot of overhead in the code such as copying and moving data.
+                """
                 test_input_latitude_list.append(ret_latitude)
                 test_input_longitude_list.append(ret_longitude)                
     # flatten returned nested list
@@ -429,7 +445,9 @@ if __name__ == '__main__':
         # convert nested list to flat list
         flat_latitude_list = sum(latitude_list, [])
         flat_longitude_list = sum(longitude_list, [])
-        
+        """
+        Nearmap feedback:A lot of overhead in the code such as copying and moving data.
+        """
         # convert list to array
         lat_array = np.array(flat_latitude_list)
         long_array = np.array(flat_longitude_list)
