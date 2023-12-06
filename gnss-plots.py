@@ -165,15 +165,15 @@ def test_parse_all_raw_data(test_input=None, expected_test_input=None, delims=No
         return GNSS__FALSE
 
 # ============================start of final solution============================
-# @param: Parse an individual line from a gps log file.
-# @param:
-#     line: Individual line of a log file.
-#     delims: Delimiters used to separate labels and data.
-# @returns:
-#     List of parsed data in longitude latitude position format
-# 
 def parse(line: str, delims: tuple) -> list:
-
+    """
+    @param: Parse an individual line from a gps log file.
+    @param:
+        line: Individual line of a log file.
+        delims: Delimiters used to separate labels and data.
+    @returns:
+        List of parsed data in longitude latitude position format
+    """
     extract =[]
     process_latitude=[]
     process_longitude=[]
@@ -248,16 +248,17 @@ def parse(line: str, delims: tuple) -> list:
     else:
         return GNSS__FALSE, process_latitude, process_longitude
     
-#
-# @brief: Parse everything in a GPS log file. return a list of lists where each "sub-list"
-# represents a parsed GPGGA entry in the log file.
-# @param:
-#     log_file: Full path of the log file to be parsed.
-#     delims: Tuple confining delimiter characters.
-# @returns:
-#     List of lists where each "sub-list" represents a parsed GPGGA line in the GPS log file.
-# """
+
 def parse_all(log_file=None, delims=None):
+    """
+     @brief: Parse everything in a GPS log file. return a list of lists where each "sub-list"
+     represents a parsed GPGGA entry in the log file.
+     @param:
+         log_file: Full path of the log file to be parsed.
+         delims: Tuple confining delimiter characters.
+     @returns:
+     List of lists where each "sub-list" represents a parsed GPGGA line in the GPS log file.
+    """
     ret_longitude_list = []
     ret_latitude_list = []
     ret_longitude = []
@@ -281,44 +282,39 @@ def parse_all(log_file=None, delims=None):
             if (error == GNSS__FALSE):                
                 log.info("Not a GPGGA")
             else:
-                """
-                Reviewer feedback:A lot of overhead in the code such as copying and moving data.
-                """
+                # Reviewer feedback:A lot of overhead in the code such as copying and moving data.
                 ret_latitude_list.append(ret_latitude)
-                ret_longitude_list.append(ret_longitude)
-        """
-        debug print: :
-        print("extracted list of Long Lati data in GPGGA logs:")
-        print(ret_latitude_list)
-        print(ret_longitude_list)
-        """
+                ret_longitude_list.append(ret_longitude)    
+        # debug print: :
+        # print("extracted list of Long Lati data in GPGGA logs:")
+        # print(ret_latitude_list)
+        # print(ret_longitude_list)
     return ret_latitude_list, ret_longitude_list
 
 
-# 
-# @brief plot 2-D data
-# @param: 
-#     latitude in array values 
-#     longitude in array values
-# @returns:
-#     GNSS__TRUE - Success
-#     GNSS__FALSE - Failure
-# """
+
 def data_plot(latitude=None, longitude=None):   
     """
-        # generating dummy Data for plotting as example        
-        t = np.arange(0.0, 2.0, 0.01)
-        s = 1 + np.sin(2 * np.pi * t)
-        # plotting
-        fig, ax = plt.subplots()
-        ax.plot(t, s)
-        ax.plot(latitude, longitude)
-    """
-    """
-    debug print::
-    print(latitude)
-    print(longitude)
-    """
+    @brief plot 2-D data
+    @param: 
+        latitude in array values 
+        longitude in array values
+    @returns:
+        GNSS__TRUE - Success
+        GNSS__FALSE - Failure
+    """   
+    #     # generating dummy Data for plotting as example        
+    #     t = np.arange(0.0, 2.0, 0.01)
+    #     s = 1 + np.sin(2 * np.pi * t)
+    #     # plotting
+    #     fig, ax = plt.subplots()
+    #     ax.plot(t, s)
+    #     ax.plot(latitude, longitude)
+
+    # debug print::
+    # print(latitude)
+    # print(longitude)
+    
     # plotting
     fig, ax = plt.subplots()    
     ax.plot(latitude, longitude)
@@ -330,18 +326,18 @@ def data_plot(latitude=None, longitude=None):
     fig.savefig(OUTPUT_FILE_NAME)
     plt.show()
     return GNSS__TRUE
-    
-#
-# @brief: test GPGGA data extraction function
-# @param:
-#     test_input: test input file
-#     expected_output: expected output file
-# @returns:
-#     GNSS__TRUE - Success
-#     GNSS__FALSE - Failure
-#
+
+
 def test_parse_all(test_input=None, expected_test_input=None, delims=None):
-    test_input_list = []
+    """
+     @brief: test GPGGA data extraction function
+     @param:
+         test_input: test input file
+         expected_output: expected output file
+     @returns:
+         GNSS__TRUE - Success
+         GNSS__FALSE - Failure
+    """    
     expected_data_latitude_list = []
     expected_data_longitude_list = []
     test_input_longitude_list = []
@@ -399,6 +395,7 @@ def test_parse_all(test_input=None, expected_test_input=None, delims=None):
         return GNSS__TRUE
     else:
         return GNSS__FALSE
+
 
 
 # @brief    Main for gnss-plots (a tool which is plotting the flight route of a plane.) that does:

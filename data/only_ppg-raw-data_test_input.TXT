@@ -1,0 +1,2 @@
+53|000d 00:00:01.304|[GH3x2xHrAlgoExe]ppg_rawdata = 8414014,gain_adj_flg = 0,cur_adj_flg = 0
+54|000d 00:00:01.304|[GH3x2xHrAlgoExe]ppg_rawdata = 8397898,gain_adj_flg = 0,cur_adj_flg = 0
