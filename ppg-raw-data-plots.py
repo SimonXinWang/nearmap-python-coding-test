@@ -60,7 +60,8 @@ class Const:
     """Constants used as gnss data inputs."""
     TEST_DATA_INPUT_LOCAL_PATH = r"data\only_ppg-raw-data_test_input.TXT"
     EXPECTED_TEST_DATA_OUTPUT_PATH = r"data\expected_only_ppg-raw-data_test_output.TXT"
-    DATA_LOCAL_PATH = r"data\only_ppg-raw-data_test_input.TXT"
+    # DATA_LOCAL_PATH = r"data\only_ppg-raw-data_test_input.TXT"
+    DATA_LOCAL_PATH = r"data\ppg-raw-data_ch3_6_12_2023_16-57-13.TXT"
 
 
 # Delimiters used to separate data and labels. Used for the parse_all function.
@@ -115,6 +116,29 @@ def parse_raw(line: str, delims: tuple) -> list:
     ret = line.split(delims[0])
     return [x.strip() for x in ret]
     
+
+def parse_all_raw(log_file=None):
+    """
+    pass each line from a log file to parse function
+    """
+    ret = []
+    
+    # try local file availability
+    try:
+        open(log_file, 'r')
+    except:
+        log.info("No data file.")
+        print("ERROR:Could not find data log for use.")
+        time.sleep(GNSS__USER_INTERACTIVE_SLEEP_BEFORE_QUIT_PROGRAM_SECOND)
+        quit()
+
+    with open(log_file, 'r') as file:
+        # Read lines from the file, strip newline characters, and store them in an array
+        lines_array = [line.strip() for line in file.readlines()]
+        print("extracted array")
+        print(lines_array)
+    return lines_array
+
 
 def parse_all_extract_raw(log_file=None, delims=None):
     """
@@ -212,8 +236,8 @@ def data_plot(latitude=None, longitude=None):
     fig, ax = plt.subplots()    
     ax.plot(latitude, longitude)
 
-    ax.set(xlabel='latitude (degree)', ylabel='longitude (degree)',
-           title='Plot of flight route')
+    ax.set(xlabel='time (discrete)', ylabel='ppg raw (adc steps)',
+           title='Plot of ppg raw data')
     ax.grid()
 
     fig.savefig(OUTPUT_FILE_NAME)
@@ -288,6 +312,9 @@ def test_parse_all(test_input=None, expected_test_input=None, delims=None):
     else:
         return GNSS__FALSE
 
+def generate_incrementing_array(num_elements):
+    return [i + 1 for i in range(num_elements)]
+
 
 # @brief    Main for gnss-plots (a tool which is plotting the flight route of a plane.) that does:
 #           Execute unit test code for parse_all function
@@ -318,30 +345,36 @@ if __name__ == '__main__':
     test_data_input = os.path.abspath(Const.TEST_DATA_INPUT_LOCAL_PATH)
     expected_test_input = os.path.abspath(Const.EXPECTED_TEST_DATA_OUTPUT_PATH)
 
-    test_result = test_parse_all(
-        test_data_input, expected_test_input, DEFAULT_DELIMS)
+    # test_result = test_parse_all(
+    #     test_data_input, expected_test_input, DEFAULT_DELIMS)
     
-    if(test_result == GNSS__FALSE):
-        log.info("unit test failed.")
-        print("ERROR:unit test failed.")
-        # sleep 2 seconds
-        time.sleep(GNSS__USER_INTERACTIVE_SLEEP_BEFORE_QUIT_PROGRAM_SECOND)
-        quit()
+
+    print("proceed to main tool feature.")
+    ppg_raw_list = parse_all_raw(
+        data_file)
+
+    """
+    Reviewer feedback:A lot of overhead in the code such as copying and moving data.
+    """
+    # convert list to array
+    ppg_array = np.array(ppg_raw_list)
+    
+    # using loop Converting all strings in list to integers Naive Method
+    for i in range(0, len(ppg_raw_list)):
+        ppg_raw_list[i] = int(ppg_raw_list[i])
+    print(ppg_raw_list)
+
+    # generating time line for plotting
+    # t = np.arange(0.0, 2.0, 1)    
+
+    # generating time line for plotting
+    t = generate_incrementing_array(ppg_array.size)
+
+    # Print the result
+    print(t)
+    if data_plot(t, ppg_array) == GNSS__TRUE:
+        print("Plotting successfully")
     else:
-        print("unit test passed, proceed to main tool feature.")
-        [latitude_list, longitude_list] = parse_all(data_file, DEFAULT_DELIMS)
-        # convert nested list to flat list
-        flat_latitude_list = sum(latitude_list, [])
-        flat_longitude_list = sum(longitude_list, [])
-        """
-        Reviewer feedback:A lot of overhead in the code such as copying and moving data.
-        """
-        # convert list to array
-        lat_array = np.array(flat_latitude_list)
-        long_array = np.array(flat_longitude_list)
-        if data_plot(lat_array, long_array) == GNSS__TRUE:
-            print("Plotting successfully")
-        else:
-            print("Plotting failed")
+        print("Plotting failed")
     print("------------------main end---------------------------")
 
